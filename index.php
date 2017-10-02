@@ -1,60 +1,50 @@
+<?php
+
+$customer_list = array(
+    "1" => array("name" => "Mai Văn Hoàn", "day_of_birth" => "1983/08/20", "address" => "Hà Nội", "profile" => "images/img1.jpg"),
+    "2" =>array("name" => "Nguyễn Văn Nam", "day_of_birth" => "1983/08/21", "address" => "Bắc Giang", "profile" => "images/img2.jpg"),
+    "3" =>array("name" => "Nguyễn Thái Hòa", "day_of_birth" => "1983/08/22", "address" => "Nam Định", "profile" => "images/img3.jpg"),
+    "4" =>array("name" => "Trần Đăng Khoa", "day_of_birth" => "1983/08/17", "address" => "Hà Tây", "profile" => "images/img4.jpg"),
+    "5" =>array("name" => "Nguyễn Đình Thi", "day_of_birth" => "1983/08/19", "address" => "Hà Nội", "profile" => "images/img5.jpg")
+);
+
+function searchByDate($customers, $from_date, $to_date) {
+    if(empty($from_date) && empty($to_date)){
+        return $customers;
+    }
+    $filtered_customers = [];
+    foreach($customers as $customer){
+        if(!empty($from_date) && (strtotime($customer['day_of_birth']) < strtotime($from_date)))
+            continue;
+        if(!empty($to_date) && (strtotime($customer['day_of_birth']) > strtotime($to_date)))
+            continue;
+        $filtered_customers[] = $customer;
+    }
+    return $filtered_customers;
+}
+?>
 <!DOCTYPE html>
 <html>
     <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        #from, #to {
-            width: 200px;
-            border: 2px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-            padding: 12px 10px 12px 10px;
-        }
-        #submit {
-            border-radius: 2px;
-            padding: 10px 32px;
-            font-size: 16px;
-        }
-    </style>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link type="text/css" rel="stylesheet" href="css/style.css"/>
     </head>
     <body>
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post">
-          Từ: <input id = "from" type="text" name="from" placeholder="yy/mm/dd"/>
-          Đến: <input id = "to" type="text" name="to" placeholder="yyyy-mm-dd"/>
-          <input type = "submit" id = "submit" value = "Tìm"/>
+    <?php
+        $from_date = NULL;
+        $to_date = NULL;
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            $from_date = $_POST["from"];
+            $to_date = $_POST["to"];
+        }
+        $filtered_customers = searchByDate($customer_list, $from_date, $to_date);
+    ?>
+        <form method="post">
+          Từ: <input id = "from" type="text" name="from" placeholder="yyyyy/mm/dd" value="<?php echo isset($from_date)?$from_date:''; ?>"/>
+          Đến: <input id = "to" type="text" name="to" placeholder="yyyy/mm/dd" value="<?php echo isset($to_date)?$to_date:''; ?>"/>
+          <input type = "submit" id = "submit" value = "Lọc"/>
         </form>
-        <?php
-          function searchByDate($fromdate, $todate, $customerlist) {
-                $flag = 0;
-                foreach($customerlist as $key => $values){
-                  $datevalues = $values['ngaysinh'];
-                  if($datevalues >= $fromdate && $datevalues <= $todate) {
-                    echo "<tr>";
-                    echo "<td>".$key."</td>";
-                    echo "<td>".$values['ten']."</td>";
-                    echo "<td>".$values['ngaysinh']."</td>";
-                    echo "<td>".$values['diachi']."</td>";
-                    echo "<td><image src = '".$values['anh']."' width = '60px' height = '60px'/></td>";
-                    echo "</tr>";
-                    $flag = 1;
-                  }else if(empty($fromdate) && empty($todate)){
-                    $flag = 0;
-                  }
-                }
-                if($flag == 0) {
-                  echo "<b style='color:red'>Khong tim thay!.</b>";
-                }
-            }
-        ?>
+
         <table border="0">
           <caption><h2>Danh sách khách hàng</h2></caption>
           <tr>
@@ -64,21 +54,15 @@
             <th>Địa chỉ</th>
             <th>Ảnh</th>
           </tr>
-          <?php
-          if ($_SERVER["REQUEST_METHOD"] == "POST") {
-              $fromdate = $_POST["from"];
-              $todate = $_POST["to"];
-
-              $customerlist = array(
-                "1" => array("ten" => "Mai Văn Hoàn", "ngaysinh" => "1983-08-20", "diachi" => "Hà Nội", "anh" => "images/img1.jpg"),
-                "2" =>array("ten" => "Nguyễn Văn Nam", "ngaysinh" => "1983-08-21", "diachi" => "Bắc Giang", "anh" => "images/img2.jpg"),
-                "3" =>array("ten" => "Nguyễn Thái Hòa", "ngaysinh" => "1983-08-22", "diachi" => "Nam Định", "anh" => "images/img3.jpg"),
-                "4" =>array("ten" => "Trần Đăng Khoa", "ngaysinh" => "1983-08-17", "diachi" => "Hà Tây", "anh" => "images/img4.jpg"),
-                "5" =>array("ten" => "Nguyễn Đình Thi", "ngaysinh" => "1983-08-19", "diachi" => "Hà Nội", "anh" => "images/img5.jpg")
-              );
-              searchByDate($fromdate, $todate, $customerlist);
-          }
-          ?>
+          <?php foreach($filtered_customers as $index=> $customer): ?>
+            <tr>
+                <td><?php echo $index + 1;?></td>
+                <td><?php echo $customer['name'];?></td>
+                <td><?php echo $customer['day_of_birth'];?></td>
+                <td><?php echo $customer['address'];?></td>
+                <td><div class="profile"><img src="<?php echo $customer['profile'];?>"/></div> </td>
+            </tr>
+            <?php endforeach; ?>
         </table>
 </body>
 </html>
